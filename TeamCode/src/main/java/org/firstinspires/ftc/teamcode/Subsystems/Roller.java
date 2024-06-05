@@ -22,8 +22,8 @@ public class Roller extends SubsystemBase {
         //roller.setDirection(DcMotor.Direction.REVERSE);
     }
 
-    public void setRoller(){
-        roller.setPower(-1);
+    public void setRoller(double power){
+        roller.setPower(power);
     }
    /* public void get(){
         roller.setPower(.9);

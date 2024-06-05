@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode.Autos;
 
+
 import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -17,39 +16,45 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 
-@Autonomous(name="Mal", group="Linear Opmode")
-public class Autonomus extends LinearOpMode {
+@Autonomous
+        (name="AAZUL", group="Linear Opmode")
+public class AzulAuto extends LinearOpMode {
 
-    private BNO055IMU imu = null;
-    private double robotHeading = 0;
-    private double headingOffset = 0;
-    private double headingError = 0;
-    private DcMotor rightDrive = null;
-    private DcMotor leftDrive = null;
 
-    private double targetHeading = 0;
-    private double driveSpeed = 0;
-    private double turnSpeed = 0;
-    private double leftSpeed = 0;
-    private double rightSpeed = 0;
-    private int leftTarget = 0;
-    private int rightTarget = 0;
+    private BNO055IMU       imu         = null;
+    private double          robotHeading  = 0;
+    private double          headingOffset = -150;
+    private double          headingError  = 0;
 
-    static final double COUNTS_PER_MOTOR_REV = 28;   // eg: GoBILDA 312 RPM Yellow Jacket
-    static final double DRIVE_GEAR_REDUCTION = 15.0;     // No External Gearing.
-    static final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
-    static final double COUNTS_PER_INCH = 37.28;
+    private double          desiredHeading = 0;
+    private DcMotor rightDrive = null;private DcMotor leftDrive = null;private DcMotor brazo = null;
 
-    static final double DRIVE_SPEED = 0.1;     // Max driving speed for better distance accuracy.
-    static final double TURN_SPEED = 0.15;     // Max Turn speed to limit turn rate
-    static final double HEADING_THRESHOLD = 1.0;
+    private double  targetHeading = 0;
+    private double  driveSpeed    = 0;
+    private double  turnSpeed     = 0;
+    private double  leftSpeed     = 0;
+    private double  rightSpeed    = 0;
+    private int     leftTarget    = 0;
+    private int     rightTarget   = 0;
 
-    static final double P_TURN_GAIN = 0.02;     // Larger is more responsive, but also less stable
-    static final double P_DRIVE_GAIN = 0.03;
+    private boolean globalTurn = true;
 
-    private DcMotor brazo = null;
+    static final double     COUNTS_PER_MOTOR_REV    = 28 ;   // eg: GoBILDA 312 RPM Yellow Jacket
+    static final double     DRIVE_GEAR_REDUCTION    = 15.0 ;     // No External Gearing.
+    static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
+    static final double     COUNTS_PER_INCH         = 12;
 
-    private ServoEx servo3;
+    static final double     DRIVE_SPEED             = 0.8
+            ;     // Max driving speed for better distance accuracy.
+    static final double     TURN_SPEED              = 0.2;     // Max Turn speed to limit turn rate
+    static final double     HEADING_THRESHOLD       = 1.0 ;
+
+    static final double     P_TURN_GAIN            = 0.02;     // Larger is more responsive, but also less stable
+    static final double     P_DRIVE_GAIN           = 0.03;
+
+    private ServoEx servoIzq = null;
+    private ServoEx servoDer = null;
+
 
 
     @Override
@@ -63,75 +68,106 @@ public class Autonomus extends LinearOpMode {
         leftDrive = hardwareMap.get(DcMotor.class, "leftFront");
         rightDrive = hardwareMap.get(DcMotor.class, "rightFront");
 
-        brazo = hardwareMap.get(DcMotor.class, "brazo");
+        brazo = hardwareMap.get(DcMotor.class, "brazo1");
 
-        servo3 = new SimpleServo(hardwareMap,"servo3", 0, 180,AngleUnit.DEGREES);
+        servoIzq = new SimpleServo(hardwareMap, "servoIzq", 0,180, AngleUnit.DEGREES);
+        servoDer = new SimpleServo(hardwareMap, "servoDer", 0,180, AngleUnit.DEGREES);
 
 
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        brazo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        brazo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        brazo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        brazo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        brazo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
 
 
         leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        brazo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         resetHeading();
 
         waitForStart();
-        setBrazo(700);
-        sleep(500);
-        driveStraight(DRIVE_SPEED,-10,0);
+        setBrazo(-500);
+        sleep(230);
+        open();
+        sleep(1200);
+        setBrazo(-250);
         sleep(1000);
-        turnToHeading(TURN_SPEED,90);
+        close();
+        sleep(700);
+        setBrazo(-900);
+        driveStraight(DRIVE_SPEED,-20.5,0);
         sleep(500);
-        driveStraight(DRIVE_SPEED,-15,90);
+        manualTurn(-.5,-90);
+        sleep(1000);
+        driveStraight(DRIVE_SPEED*.2,46.3,-90);
+        sleep(300);
+        setBrazo(-3100);
+        sleep(4000);
+        setBrazo(-3260);
+        sleep(1000);
+        manualTurn(1,-90);
+        sleep(1000);
+        open();
+        sleep(1200);
+        setBrazo(-250);
+        driveStraight(DRIVE_SPEED*.2,-6.4,-90);
+        sleep(3000);
+        close();
+        sleep(1000);
+        driveStraight(DRIVE_SPEED*.3,4.7,-90);
+        setBrazo(-3350);
+        sleep(3700);
+        open();
+        sleep(700);
+        setBrazo(0);
+        close();
 
-        sleep(500);
-        turnToHeading(TURN_SPEED,0);
-        sleep(500);
-        driveStraight(DRIVE_SPEED,-80,0);
-        sleep(1000);
-        grabFundation();
-        sleep(1000);
-        driveStraight(DRIVE_SPEED,89,0);
-        sleep(500);
-        leaveFundation();
-        sleep(500);
+
+
+
 
 
 
     }
+
 
     public void resetHeading() {
         // Save a new heading offset equal to the current raw heading.
         headingOffset = getRawHeading();
         robotHeading = 0;
     }
-
     public double getRawHeading() {
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        Orientation angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         return angles.firstAngle;
     }
-
-    public void setBrazo(int pos) {
+    public void setBrazo(int pos){
         brazo.setTargetPosition(pos);
-        brazo.setPower(.9);
+        brazo.setPower(.5);
         brazo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
-
-    public void grabFundation(){
-        servo3.setPosition(1);
+    public void close(){
+        servoDer.setPosition(1);
+        servoIzq.setPosition(0);
     }
-    public void leaveFundation(){
-        servo3.setPosition(0.5);
+    public void open(){
+        servoDer.setPosition(.8);
+        servoIzq.setPosition(.3);
+    }
+
+
+    public double getgetRawHeading(boolean activate) {
+        do {
+            Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            return angles.firstAngle;
+        }while(activate);
     }
 
 
@@ -144,7 +180,7 @@ public class Autonomus extends LinearOpMode {
         if (opModeIsActive()) {
 
             // Determine new target position, and pass to motor controller
-            int moveCounts = (int) (distance * COUNTS_PER_INCH);
+            int moveCounts = (int)(distance * COUNTS_PER_INCH);
             leftTarget = leftDrive.getCurrentPosition() + moveCounts;
             rightTarget = rightDrive.getCurrentPosition() + moveCounts;
 
@@ -195,7 +231,7 @@ public class Autonomus extends LinearOpMode {
         headingError = targetHeading - robotHeading;
 
         // Normalize the error to be within +/- 180 degrees
-        while (headingError > 180) headingError -= 360;
+        while (headingError > 180)  headingError -= 360;
         while (headingError <= -180) headingError += 360;
 
         // Multiply the error by the gain to determine the required steering correction/  Limit the result to +/- 1.0
@@ -204,31 +240,35 @@ public class Autonomus extends LinearOpMode {
 
     private void sendTelemetry(boolean straight) {
 
-        if (straight) {
+  /*      if (straight) {
             telemetry.addData("Motion", "Drive Straight");
-            telemetry.addData("Target Pos L:R", "%7d:%7d", leftTarget, rightTarget);
-            telemetry.addData("Actual Pos L:R", "%7d:%7d", leftDrive.getCurrentPosition(),
+            telemetry.addData("Target Pos L:R",  "%7d:%7d",      leftTarget,  rightTarget);
+            telemetry.addData("Actual Pos L:R",  "%7d:%7d",      leftDrive.getCurrentPosition(),
                     rightDrive.getCurrentPosition());
         } else {
             telemetry.addData("Motion", "Turning");
         }
 
-        telemetry.addData("Angle Target:Current", "%5.2f:%5.0f", targetHeading, robotHeading);
-        telemetry.addData("Error:Steer", "%5.1f:%5.1f", headingError, turnSpeed);
+/*telemetry.addData("Angle Target:Current", "%5.2f:%5.0f", targetHeading, robotHeading);
+        telemetry.addData("Error:Steer",  "%5.1f:%5.1f", headingError, turnSpeed);
         telemetry.addData("Wheel Speeds L:R.", "%5.2f : %5.2f", leftSpeed, rightSpeed);
+       */
+        telemetry.addData("Heading test",getgetRawHeading(true));
+        telemetry.addData("Desired Heading test",desiredHeading);
         telemetry.update();
     }
 
     public void moveRobot(double drive, double turn) {
         driveSpeed = drive;     // save this value as a class member so it can be used by telemetry.
-        turnSpeed = turn;      // save this value as a class member so it can be used by telemetry.
+        turnSpeed  = turn;      // save this value as a class member so it can be used by telemetry.
 
-        leftSpeed = drive - turn;
+        leftSpeed  = drive - turn;
         rightSpeed = drive + turn;
 
         // Scale speeds down if either one exceeds +/- 1.0;
         double max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
-        if (max > 1.0) {
+        if (max > 1.0)
+        {
             leftSpeed /= max;
             rightSpeed /= max;
         }
@@ -261,6 +301,7 @@ public class Autonomus extends LinearOpMode {
         moveRobot(0, 0);
     }
 
+
     public void turnToHeading(double maxTurnSpeed, double heading) {
 
         // Run getSteeringCorrection() once to pre-calculate the current error
@@ -283,7 +324,28 @@ public class Autonomus extends LinearOpMode {
         }
 
         // Stop all motion;
-        moveRobot(0, 0);
+        moveRobot(0,0);
     }
 
+    public void manualTurn(double turnDirection, double heading){
+        do {
+            globalTurn = true;
+            if (isWithinThreshold(getgetRawHeading(true), heading, 157)) {
+                leftDrive.setPower(turnDirection * -1);
+                rightDrive.setPower(turnDirection);
+                desiredHeading = heading;
+            } else {
+                leftDrive.setPower(0);
+                rightDrive.setPower(0);
+                globalTurn = false;
+            }
+        }while(globalTurn);
+    }
+
+    public boolean isWithinThreshold(double value, double target, double threshold){
+        return Math.abs(value - target) < threshold;
+    }
+
+
 }
+

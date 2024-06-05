@@ -29,7 +29,7 @@ public class TeleOp extends CommandOpMode {
         Brazo brazo= new Brazo(telemetry,hardwareMap);
         Pinza pinza = new Pinza(telemetry, hardwareMap);
         //Escalador escalador = new Escalador(hardwareMap,telemetry);
-        //Roller roller = new Roller(telemetry,hardwareMap);
+       // Roller roller = new Roller(telemetry,hardwareMap);
 
         driveSystem.setDefaultCommand(new TankDriveCommand(
                 driveSystem, () -> -gamepadDriver.getLeftY(), gamepadDriver::getRightX
@@ -43,39 +43,82 @@ public class TeleOp extends CommandOpMode {
 
 
 
-        new GamepadButton(new GamepadEx(gamepad1), GamepadKeys.Button.RIGHT_BUMPER)
-                .whenPressed(new InstantCommand(pinza::open));
-        new GamepadButton(new GamepadEx(gamepad1), GamepadKeys.Button.LEFT_BUMPER)
+       new GamepadButton(new GamepadEx(gamepad1), GamepadKeys.Button.RIGHT_BUMPER)
                 .whenPressed(new InstantCommand(pinza::close));
+        new GamepadButton(new GamepadEx(gamepad1), GamepadKeys.Button.LEFT_BUMPER)
+                .whenPressed(new InstantCommand(pinza::open));
 
 
 
-
-        new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.Y)
-                .whileHeld(()-> brazo.poder(.4))
-                .whenReleased(()->brazo.poder(0));
-
-        new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.A)
-                .whileHeld(()-> brazo.poder(-.4))
-                .whenReleased(()->brazo.poder(0));
-
-
-
-
-
-        new GamepadButton(new GamepadEx(gamepad2),GamepadKeys.Button.B)
-                .toggleWhenPressed(()-> pinza.grabFundation(),()-> pinza.leaveFundation());
 
 
 
 
       /* new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.Y)
-                .whenPressed(() -> brazo.posiciones(-700, .5));
+                .whileHeld(()-> brazo.poder(-.6))
+                .whenReleased(()->brazo.poder(0));
 
+        new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.A)
+                .whileHeld(()-> brazo.poder(.6))
+                .whenReleased(()->brazo.poder(0));
+
+       */
+
+
+
+
+
+
+
+
+       // new GamepadButton(new GamepadEx(gamepad2),GamepadKeys.Button.B)
+         //       .toggleWhenPressed(()-> pinza.up(),()-> pinza.down());
+
+
+
+
+
+
+       new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.Y)
+                .whenPressed(() -> brazo.posiciones(-3030, .5));
+
+
+        new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.B)
+                .whenPressed(() -> brazo.posiciones(-1000, .5));
 
 
         new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.A)
-                .whenPressed(() -> brazo.posiciones(0, .5));
+                .whenPressed(() -> brazo.posiciones(-400, .5));
+
+        new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.X)
+                .whenPressed(()-> brazo.posiciones(-650,.5));
+
+
+
+
+        gamepadsystem.getGamepadButton(GamepadKeys.Button.DPAD_DOWN)
+                .whenPressed(() -> brazo.posiciones(brazo.getArmPose()-3000,0.5))
+                .whenReleased(() -> brazo.posiciones(brazo.getArmPose(),0));
+
+
+        gamepadsystem.getGamepadButton(GamepadKeys.Button.DPAD_UP)
+                .whenPressed(() -> brazo.posiciones(brazo.getArmPose()+3000,0.5))
+                .whenReleased(() -> brazo.posiciones(brazo.getArmPose(),0));
+
+        //SMALLER MANUAL
+        gamepadDriver.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
+                .whenPressed(() -> brazo.posiciones(brazo.getArmPose()+50,0.5));
+
+        gamepadsystem.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
+                .whenPressed(() -> brazo.posiciones(brazo.getArmPose()-50,0.5));
+
+
+
+
+
+       // gamepadsystem.getGamepadButton(GamepadKeys.Button)
+
+
 
 
 
@@ -85,7 +128,7 @@ public class TeleOp extends CommandOpMode {
         new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.A)
                 .whenPressed(()->escalador.setPower(-.8));
 
-         */
+
 
 
         /*new GamepadButton(new GamepadEx(gamepad1), GamepadKeys.Button.RIGHT_BUMPER)
@@ -95,20 +138,27 @@ public class TeleOp extends CommandOpMode {
 
         new GamepadButton(new GamepadEx(gamepad1),GamepadKeys.Button.LEFT_BUMPER)
               .whenPressed(new InstantCommand(roller::out))
-            .whenReleased(new InstantCommand(roller::stop));
-
-
+            .whenReleased(new Instant
+            Command(roller::stop));
          */
 
 
 
 
 
-       // roller.setDefaultCommand(new RollerCommand(roller,gamepadDriver));
+
+
+
+       //roller.setDefaultCommand(new RollerCommand(roller,gamepadDriver));
 
 
         gamepadDriver.getGamepadButton(GamepadKeys.Button.RIGHT_STICK_BUTTON)
                 .whenPressed(new InstantCommand(driveSystem::toggleInverted));
+
+
+        gamepadDriver.getGamepadButton(GamepadKeys.Button.BACK)
+                .whenPressed(new InstantCommand(driveSystem::bajarVel));
+
 
 
 

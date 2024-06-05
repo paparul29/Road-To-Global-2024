@@ -21,6 +21,8 @@ public class TankSubsystem  extends SubsystemBase {
     private final SampleTankDrive drive;
     private  boolean isinverted = false;
 
+    private boolean vel = true;
+
     public TankSubsystem(SampleTankDrive drive) {
         this.drive = drive;
     }
@@ -38,6 +40,10 @@ public class TankSubsystem  extends SubsystemBase {
         return drive;
     }
 
+    public void bajarVel(){
+        this.vel = !vel;
+    }
+
     public void update() { drive.update(); }
 
     public void updatePoseEstimate(){
@@ -46,13 +52,11 @@ public class TankSubsystem  extends SubsystemBase {
     public void drive(double leftY, double rightX) {
         Pose2d poseEstimate = getPoseEstimate();
 
-
-
         drive.setWeightedDrivePower(
                 new Pose2d(
-                        isinverted ? -leftY : leftY,
+                        vel ? -leftY : -leftY*.3,
                         0,
-                        rightX
+                        vel ? rightX : rightX*.45
                 )
         );
 

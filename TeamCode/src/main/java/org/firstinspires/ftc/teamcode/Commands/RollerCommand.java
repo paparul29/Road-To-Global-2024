@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.R;
 import org.firstinspires.ftc.teamcode.Subsystems.Roller;
 
 public class RollerCommand extends CommandBase {
-  /*  Roller roller;
+   Roller roller;
     GamepadEx gamepad;
 
     public RollerCommand(Roller roller, GamepadEx gamepad){
@@ -33,7 +33,7 @@ public class RollerCommand extends CommandBase {
         }
     }
 
-   */
+
 
 
 }
