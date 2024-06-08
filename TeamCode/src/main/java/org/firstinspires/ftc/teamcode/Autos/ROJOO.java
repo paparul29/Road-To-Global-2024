@@ -1,12 +1,16 @@
 package org.firstinspires.ftc.teamcode.Autos;
 
 
+
 import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
-import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -14,20 +18,23 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.drive.DriveConstants;
 
 
 @Autonomous
-        (name="AAZUL", group="Linear Opmode")
-public class AzulAuto extends LinearOpMode {
+        (name="AutoROJO", group="Linear Opmode")
+public class ROJOO extends LinearOpMode {
 
 
-    private BNO055IMU       imu         = null;
+    private IMU imu         = null;
     private double          robotHeading  = 0;
     private double          headingOffset = -150;
     private double          headingError  = 0;
 
     private double          desiredHeading = 0;
-    private DcMotor rightDrive = null;private DcMotor leftDrive = null;private DcMotor brazo = null;
+    private DcMotor rightDrive = null;private DcMotor leftDrive = null;
+
+    private DcMotorEx armMotor1 = null; private DcMotorEx armMotor2 = null;
 
     private double  targetHeading = 0;
     private double  driveSpeed    = 0;
@@ -37,56 +44,62 @@ public class AzulAuto extends LinearOpMode {
     private int     leftTarget    = 0;
     private int     rightTarget   = 0;
 
+    private boolean globalConstant = false;
+
     private boolean globalTurn = true;
 
     static final double     COUNTS_PER_MOTOR_REV    = 28 ;   // eg: GoBILDA 312 RPM Yellow Jacket
     static final double     DRIVE_GEAR_REDUCTION    = 15.0 ;     // No External Gearing.
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
-    static final double     COUNTS_PER_INCH         = 12;
+    static final double     COUNTS_PER_INCH         = 37.28;
 
-    static final double     DRIVE_SPEED             = 0.8
+    static final double     DRIVE_SPEED             = 0.5
             ;     // Max driving speed for better distance accuracy.
-    static final double     TURN_SPEED              = 0.2;     // Max Turn speed to limit turn rate
+    static final double     TURN_SPEED              = 0.15;     // Max Turn speed to limit turn rate
     static final double     HEADING_THRESHOLD       = 1.0 ;
 
     static final double     P_TURN_GAIN            = 0.02;     // Larger is more responsive, but also less stable
     static final double     P_DRIVE_GAIN           = 0.03;
 
-    private ServoEx servoIzq = null;
-    private ServoEx servoDer = null;
-
+    ServoEx servoDerecho,servoIzquierdo;
 
 
     @Override
     public void runOpMode() {
 
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
         imu.initialize(parameters);
 
         leftDrive = hardwareMap.get(DcMotor.class, "leftFront");
         rightDrive = hardwareMap.get(DcMotor.class, "rightFront");
 
-        brazo = hardwareMap.get(DcMotor.class, "brazo1");
+        armMotor1 = hardwareMap.get(DcMotorEx.class,"brazo1");
+        armMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armMotor1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armMotor1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        servoIzq = new SimpleServo(hardwareMap, "servoIzq", 0,180, AngleUnit.DEGREES);
-        servoDer = new SimpleServo(hardwareMap, "servoDer", 0,180, AngleUnit.DEGREES);
+        armMotor2 = hardwareMap.get(DcMotorEx.class,"brazo2");
+        armMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        armMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        armMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        servoDerecho = new SimpleServo(hardwareMap, "servoDer",0,180);
+        servoIzquierdo = new SimpleServo(hardwareMap, "servoIzq",0,180);
+        servoIzquierdo.setInverted(false);
 
         leftDrive.setDirection(DcMotor.Direction.FORWARD);
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
-        brazo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        brazo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
 
         leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        brazo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
 
 
         leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -94,47 +107,36 @@ public class AzulAuto extends LinearOpMode {
         resetHeading();
 
         waitForStart();
-        setBrazo(-500);
-        sleep(230);
         open();
-        sleep(1200);
-        setBrazo(-250);
-        sleep(1000);
-        close();
-        sleep(700);
-        setBrazo(-900);
-        driveStraight(DRIVE_SPEED,-20.5,0);
-        sleep(500);
-        manualTurn(-.5,-90);
-        sleep(1000);
-        driveStraight(DRIVE_SPEED*.2,46.3,-90);
         sleep(300);
-        setBrazo(-3100);
-        sleep(4000);
-        setBrazo(-3260);
-        sleep(1000);
-        manualTurn(1,-90);
-        sleep(1000);
-        open();
-        sleep(1200);
-        setBrazo(-250);
-        driveStraight(DRIVE_SPEED*.2,-6.4,-90);
-        sleep(3000);
+        setPosition(100,.9);
+        driveStraight(DRIVE_SPEED,70,0);
+        sleep(300);
+        turnToHeading(TURN_SPEED,90);
+        sleep(300);
+        driveStraight(DRIVE_SPEED,44,90);
+        sleep(300);
+        turnToHeading(TURN_SPEED,180);
+        sleep(300);
+        driveStraight(DRIVE_SPEED*.5,6.5,180);
+        sleep(400);
         close();
-        sleep(1000);
-        driveStraight(DRIVE_SPEED*.3,4.7,-90);
-        setBrazo(-3350);
-        sleep(3700);
-        open();
-        sleep(700);
-        setBrazo(0);
-        close();
-
-
-
-
-
-
+        sleep(500);
+        driveStraight(DRIVE_SPEED,-20,180);
+        setPosition(300,.8);
+        sleep(300);
+        turnToHeading(TURN_SPEED,90);
+        sleep(300);
+        driveStraight(DRIVE_SPEED,-44,90);
+        sleep(500);
+        turnToHeading(TURN_SPEED,180);
+        sleep(300);
+        driveStraight(DRIVE_SPEED,57,180);
+        sleep(300);
+        turnToHeading(TURN_SPEED,90);
+        sleep(300);
+        driveStraight(DRIVE_SPEED,40,90);
+        sleep(300);
 
     }
 
@@ -145,29 +147,36 @@ public class AzulAuto extends LinearOpMode {
         robotHeading = 0;
     }
     public double getRawHeading() {
-        Orientation angles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        Orientation angles   = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         return angles.firstAngle;
     }
-    public void setBrazo(int pos){
-        brazo.setTargetPosition(pos);
-        brazo.setPower(.5);
-        brazo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-    public void close(){
-        servoDer.setPosition(1);
-        servoIzq.setPosition(0);
-    }
-    public void open(){
-        servoDer.setPosition(.8);
-        servoIzq.setPosition(.3);
-    }
-
 
     public double getgetRawHeading(boolean activate) {
         do {
-            Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            Orientation angles = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             return angles.firstAngle;
         }while(activate);
+    }
+
+    public void setPosition(int pos, double power){
+        armMotor1.setTargetPosition(pos);
+        armMotor1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor1.setPower(power);
+
+
+        armMotor2.setTargetPosition(-pos);
+        armMotor2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor2.setPower(power);
+
+    }
+
+    public void close(){
+        servoDerecho.setPosition(1);
+        servoIzquierdo.setPosition(0);
+    }
+    public void open(){
+        servoDerecho.setPosition(0.9);
+        servoIzquierdo.setPosition(0.32);
     }
 
 
@@ -201,7 +210,7 @@ public class AzulAuto extends LinearOpMode {
                     (leftDrive.isBusy() && rightDrive.isBusy())) {
 
                 // Determine required steering to keep on heading
-                turnSpeed = getSteeringCorrection(heading, P_DRIVE_GAIN);
+                turnSpeed = getSteeringCorrection(heading, P_TURN_GAIN);
 
                 // if driving in reverse, the motor correction also needs to be reversed
                 if (distance < 0)
@@ -240,7 +249,7 @@ public class AzulAuto extends LinearOpMode {
 
     private void sendTelemetry(boolean straight) {
 
-  /*      if (straight) {
+        if (straight) {
             telemetry.addData("Motion", "Drive Straight");
             telemetry.addData("Target Pos L:R",  "%7d:%7d",      leftTarget,  rightTarget);
             telemetry.addData("Actual Pos L:R",  "%7d:%7d",      leftDrive.getCurrentPosition(),
@@ -249,10 +258,10 @@ public class AzulAuto extends LinearOpMode {
             telemetry.addData("Motion", "Turning");
         }
 
-/*telemetry.addData("Angle Target:Current", "%5.2f:%5.0f", targetHeading, robotHeading);
+        telemetry.addData("Angle Target:Current", "%5.2f:%5.0f", targetHeading, robotHeading);
         telemetry.addData("Error:Steer",  "%5.1f:%5.1f", headingError, turnSpeed);
         telemetry.addData("Wheel Speeds L:R.", "%5.2f : %5.2f", leftSpeed, rightSpeed);
-       */
+
         telemetry.addData("Heading test",getgetRawHeading(true));
         telemetry.addData("Desired Heading test",desiredHeading);
         telemetry.update();
@@ -328,19 +337,20 @@ public class AzulAuto extends LinearOpMode {
     }
 
     public void manualTurn(double turnDirection, double heading){
+        globalConstant = true;
         do {
-            globalTurn = true;
-            if (isWithinThreshold(getgetRawHeading(true), heading, 157)) {
+            if (!isWithinThreshold(getgetRawHeading(true), heading, 29)) {
                 leftDrive.setPower(turnDirection * -1);
                 rightDrive.setPower(turnDirection);
                 desiredHeading = heading;
             } else {
                 leftDrive.setPower(0);
                 rightDrive.setPower(0);
-                globalTurn = false;
+                globalConstant = false;
             }
-        }while(globalTurn);
+        }while(globalConstant);
     }
+
 
     public boolean isWithinThreshold(double value, double target, double threshold){
         return Math.abs(value - target) < threshold;
@@ -348,4 +358,3 @@ public class AzulAuto extends LinearOpMode {
 
 
 }
-

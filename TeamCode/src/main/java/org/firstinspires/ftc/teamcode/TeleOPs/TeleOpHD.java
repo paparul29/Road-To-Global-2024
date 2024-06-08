@@ -6,27 +6,23 @@ import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.qualcomm.robotcore.hardware.Gamepad;
 
-import org.firstinspires.ftc.teamcode.Commands.RollerCommand;
 import org.firstinspires.ftc.teamcode.Commands.TankDriveCommand;
-import org.firstinspires.ftc.teamcode.Subsystems.Brazo;
-import org.firstinspires.ftc.teamcode.Subsystems.Escalador;
+import org.firstinspires.ftc.teamcode.Subsystems.BrazoHD;
 import org.firstinspires.ftc.teamcode.Subsystems.Pinza;
-import org.firstinspires.ftc.teamcode.Subsystems.Roller;
 import org.firstinspires.ftc.teamcode.Subsystems.TankSubsystem;
 import org.firstinspires.ftc.teamcode.drive.SampleTankDrive;
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp
-public class TeleOp extends CommandOpMode {
-    @Override
+//@com.qualcomm.robotcore.eventloop.opmode.TeleOp
+public class TeleOpHD extends CommandOpMode {
+    //@Override
     public void initialize() {
         GamepadEx gamepadDriver = new GamepadEx(gamepad1);
         GamepadEx gamepadsystem = new GamepadEx(gamepad2);
 
         SampleTankDrive sampleTankDrive = new SampleTankDrive(hardwareMap);
         TankSubsystem driveSystem = new TankSubsystem(sampleTankDrive);
-        Brazo brazo= new Brazo(telemetry,hardwareMap);
+        BrazoHD brazoHD= new BrazoHD(telemetry,hardwareMap);
         Pinza pinza = new Pinza(telemetry, hardwareMap);
         //Escalador escalador = new Escalador(hardwareMap,telemetry);
        // Roller roller = new Roller(telemetry,hardwareMap);
@@ -80,37 +76,40 @@ public class TeleOp extends CommandOpMode {
 
 
        new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.Y)
-                .whenPressed(() -> brazo.posiciones(-3030, .5));
+                .whenPressed(() -> brazoHD.posiciones(4770, .5));
 
 
         new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.B)
-                .whenPressed(() -> brazo.posiciones(-1000, .5));
+                .whenPressed(() -> brazoHD.posiciones(4575, .5));
 
 
         new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.A)
-                .whenPressed(() -> brazo.posiciones(-400, .5));
+                .whenPressed(() -> brazoHD.posiciones(4780, .5));
 
         new GamepadButton(new GamepadEx(gamepad2), GamepadKeys.Button.X)
-                .whenPressed(()-> brazo.posiciones(-650,.5));
+               .whenPressed(()-> brazoHD.posiciones(4350,.5));
+
+        new GamepadButton(new GamepadEx(gamepad2),GamepadKeys.Button.DPAD_LEFT)
+                .whenPressed(()-> brazoHD.posiciones(1550,.5));
 
 
 
 
         gamepadsystem.getGamepadButton(GamepadKeys.Button.DPAD_DOWN)
-                .whenPressed(() -> brazo.posiciones(brazo.getArmPose()-3000,0.5))
-                .whenReleased(() -> brazo.posiciones(brazo.getArmPose(),0));
+                .whenPressed(() -> brazoHD.posiciones(brazoHD.getArmPose()-400,0.5))
+                .whenReleased(() -> brazoHD.posiciones(brazoHD.getArmPose(),0));
 
 
         gamepadsystem.getGamepadButton(GamepadKeys.Button.DPAD_UP)
-                .whenPressed(() -> brazo.posiciones(brazo.getArmPose()+3000,0.5))
-                .whenReleased(() -> brazo.posiciones(brazo.getArmPose(),0));
+                .whenPressed(() -> brazoHD.posiciones(brazoHD.getArmPose()+400,0.5))
+                .whenReleased(() -> brazoHD.posiciones(brazoHD.getArmPose(),0));
 
         //SMALLER MANUAL
-        gamepadDriver.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
-                .whenPressed(() -> brazo.posiciones(brazo.getArmPose()+50,0.5));
+        gamepadsystem.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
+                .whenPressed(() -> brazoHD.posiciones(brazoHD.getArmPose()+50,0.5));
 
         gamepadsystem.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
-                .whenPressed(() -> brazo.posiciones(brazo.getArmPose()-50,0.5));
+                .whenPressed(() -> brazoHD.posiciones(brazoHD.getArmPose()-50,0.5));
 
 
 

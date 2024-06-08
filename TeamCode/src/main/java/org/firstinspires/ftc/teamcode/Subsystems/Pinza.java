@@ -34,8 +34,8 @@ public class Pinza extends SubsystemBase {
         servoIzq.setPosition(0);
     }
     public void open(){
-        servoDer.setPosition(.8);
-        servoIzq.setPosition(.3);
+        servoDer.setPosition(.9);
+        servoIzq.setPosition(0.32);
     }
 
 
